@@ -1,31 +1,61 @@
 #!/bin/bash 
-# $1 is the Contianer name
-# $2
-# Replace these with the ID or name of the container and image you want to keep
 
 CONTAINER_TO_KEEP="DooD-Testing"
 IMAGE_TO_KEEP="test"
 
+# Function to display help
+show_help() {
+  echo "Usage: demo.sh [-a]"
+  echo "  -a    Delet all Docker files"
+}
+
+# Initialize flags
+flag_a=false
+
+# Parse options
+while getopts "ah" opt; do
+  case ${opt} in
+    a)
+      flag_a=true
+      ;;
+    h)
+      show_help
+      exit 0
+      ;;
+    \?)
+      show_help
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND -1))
+
+
 # Get all container IDs
 container_ids=$(docker ps -aq)
 keep_container_id=$(docker ps -aq -f "name=$CONTAINER_TO_KEEP")
-echo "keep id $keep_container_id"
 
 # Get all image IDs
 image_ids=$(docker images -aq)
 keep_image_id=$(docker images -aq "$IMAGE_TO_KEEP")
-echo "keep id $keep_image_id"
 
-# Debugging: print the container IDs and the one to keep
-echo "All container IDs: $container_ids"
-echo "Container to keep: $CONTAINER_TO_KEEP"
 
-# Remove all containers except the one you want to keep
-containers_to_delete=$(echo "$container_ids" | grep -v $keep_container_id)
+# Delets all the containers and images
+if $flag_a; then
+  containers_to_delete=$(echo "$container_ids")
+  images_to_delete=$(echo "$image_ids")
+fi
 
-# Debugging: print the containers to be deleted
-echo "Containers to delete: $containers_to_delete"
+# Delets all the containers and images except for the testing ones
+if !$flag_a; then
+  echo "No flags set. Performing default action..."
+  # Remove all containers except the one you want to keep
+  containers_to_delete=$(echo "$container_ids" | grep -v $keep_container_id)
+  images_to_delete=$(echo "$image_ids" | grep -v "$keep_image_id")
+  # Add your default action code here
+fi
 
+echo "Hello $containers_to_delete"
 if [ -n "$containers_to_delete" ]; then
   echo "Deleting all containers except $CONTAINER_TO_KEEP..."
   docker rm -f $containers_to_delete
@@ -33,16 +63,6 @@ if [ -n "$containers_to_delete" ]; then
 else
   echo "No containers to delete."
 fi
-
-# Debugging: print the image IDs and the one to keep
-echo "All image IDs: $image_ids"
-echo "Image to keep: $IMAGE_TO_KEEP"
-
-# Remove all images except the one you want to keep
-images_to_delete=$(echo "$image_ids" | grep -v "$keep_image_id")
-
-# Debugging: print the images to be deleted
-echo "Images to delete: $images_to_delete"
 
 if [ -n "$images_to_delete" ]; then
     echo "Deleting all images except $IMAGE_TO_KEEP..."
