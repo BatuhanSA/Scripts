@@ -41,13 +41,13 @@ keep_image_id=$(docker images -aq "$IMAGE_TO_KEEP")
 
 
 # Delets all the containers and images
-if $flag_a; then
+if ($flag_a); then
   containers_to_delete=$(echo "$container_ids")
   images_to_delete=$(echo "$image_ids")
 fi
 
 # Delets all the containers and images except for the testing ones
-if !$flag_a; then
+if ! $flag_a; then
   echo "No flags set. Performing default action..."
   # Remove all containers except the one you want to keep
   containers_to_delete=$(echo "$container_ids" | grep -v $keep_container_id)
@@ -55,7 +55,6 @@ if !$flag_a; then
   # Add your default action code here
 fi
 
-echo "Hello $containers_to_delete"
 if [ -n "$containers_to_delete" ]; then
   echo "Deleting all containers except $CONTAINER_TO_KEEP..."
   docker rm -f $containers_to_delete
